@@ -130,7 +130,7 @@ max(stepsperinterval$StepAVG)</code></pre>
 sqldf('SELECT COUNT(*) FROM dataframe WHERE steps IS NULL')</code></pre>
 <pre><code>##   COUNT(*)
 ## 1     2304</code></pre>
-<pre class="r"><code>#replace missing values by stepsperinterval$Steps
+<pre class="r"><code>#prepare values for missing values in a seperate column &quot;IntervalMean&quot;
 newframe &lt;- 
       sqldf('
             SELECT  dataframe.steps, 
@@ -141,12 +141,15 @@ newframe &lt;-
             JOIN stepsperinterval 
             ON dataframe.interval = stepsperinterval.Interval
             ')
+
+#Strategy: replace the intervals that contain no value by the &quot;IntervalMean&quot; values from the average daily activity pattern &quot;stepinterval&quot;
 newframe$steps[is.na(dataframe$steps)] &lt;- newframe$IntervalMean[is.na(dataframe$steps)]
 
-
+#prepare new data
 stepsperdaynew = sqldf('SELECT date, SUM(steps) Steps FROM newframe WHERE steps 
                     is not null GROUP BY date')
 
+#plot new histogram
 ggplot(stepsperdaynew, aes(x=Steps)) + 
         geom_histogram(binwidth=2000, colour=&quot;black&quot;, fill=&quot;white&quot;) +
         labs(x=&quot;Steps per Day&quot;, y=&quot;Frequency&quot;)</code></pre>
